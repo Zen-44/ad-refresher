@@ -10,8 +10,8 @@ cd sign
 npm install
 cd
 
-(crontab -l 2>/dev/null; echo "@reboot screen -dmS refresher python3.11 $PWD/main.py") | crontab -
-screen -dmS refresher python3.11 $PWD/main.py
+(crontab -l 2>/dev/null; echo "@reboot screen -dmS refresher python3.11 $PWD/ad-refresher/main.py") | crontab -
+screen -dmS refresher python3.11 $PWD/ad-refresher/main.py
 
 echo ""
 echo "Ad refresher was installed. Please configure your node and address (python3.11 ./ad-refresher/main.py --config)"
