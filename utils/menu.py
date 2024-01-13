@@ -44,6 +44,7 @@ async def set_ads():
         print("Please configure a node connection first!")
         print("You will be returned to the menu...")
         time.sleep(5)
+        return
     if CONFIG["address"] == '':
         print("Please configure you address first!")
         print("You will be returned to the menu...")
