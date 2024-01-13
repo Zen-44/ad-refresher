@@ -12,6 +12,7 @@
     "fs": "^0.0.1-security",
     "google-protobuf": "^3.21.2",
     "js-sha3": "^0.9.3",
+    "path": "^0.12.7",
     "secp256k1": "^5.0.0"
   }
 }

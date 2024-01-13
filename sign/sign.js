@@ -2,6 +2,7 @@ const keccak256 = require('js-sha3').keccak256;
 const messages = require('./models_pb');
 const secp256k1 = require('secp256k1');
 const fs = require('fs');
+const path = require('path');
 
 function isHexPrefixed(str) {
   return str.slice(0, 2) === '0x'
@@ -195,7 +196,8 @@ Transaction = class {
 }
 
 const tx = process.argv.slice(2)[0];
-const jsonFilePath = './config.json'; // notice we call sign.js from the main folder
+const currentScriptDirectory = __dirname;
+const jsonFilePath = path.join(currentScriptDirectory, '..', "config.json");
 
 fs.readFile(jsonFilePath, 'utf8', (err, data) => {
     if (err) {
