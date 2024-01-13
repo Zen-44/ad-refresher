@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+message ProtoAdBurnKey {
+  string cid = 1;
+  string target = 2;
+}
+
+message ProtoAdTarget {
+  string language = 1;
+  int32 age = 2;
+  string os = 3;
+  int32 stake = 4;
+}
+
+message ProtoProfile {
+  message ProtoProfileAd {
+    string cid = 1;
+    string target = 2;
+    string contract = 3;
+    string author = 4;
+  }
+  
+  repeated ProtoProfileAd ads = 1;
+}
+
+message ProtoBurnAttachment {
+  string key = 1;
+}
+
+message ProtoAd {
+  string title = 1;
+  string desc = 2;
+  string url = 3;
+  bytes thumb = 4;
+  bytes media = 5;
+  uint32 version = 6;
+  ProtoAdVotingParams votingParams = 7;
+}
+
+message ProtoAdVotingParams {
+  uint32 votingDuration = 1;
+  uint32 publicVotingDuration = 2;
+  uint32 quorum = 3;
+  uint32 committeeSize = 4;
+}
+
+message ProtoTransaction {
+    message Data {
+        uint32 nonce = 1;
+        uint32 epoch = 2;
+        uint32 type = 3;
+        bytes to = 4;
+        bytes amount = 5;
+        bytes maxFee = 6;
+        bytes tips = 7;
+        bytes payload = 8;
+    }
+    Data data = 1;
+    bytes signature = 2;
+    bool useRlp = 3;
+}

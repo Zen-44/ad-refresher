@@ -1,0 +1,17 @@
+{
+  "name": "sign",
+  "version": "1.0.0",
+  "description": "transaction signer",
+  "main": "sign.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "google-protobuf": "^3.21.2",
+    "js-sha3": "^0.9.3",
+    "secp256k1": "^5.0.0"
+  }
+}
