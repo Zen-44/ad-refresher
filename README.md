@@ -11,6 +11,7 @@ source <(curl -sL https://raw.githubusercontent.com/Zen-44/ad-refresher/main/ad-
 
 ### Requirements
 Python version 3.11 required.  
+Nodejs required (for lightweight mode).  
 **Installing python requirements**:  
 ```
 python3.11 -m pip install -r requirements.txt
