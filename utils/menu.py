@@ -40,6 +40,10 @@ def save_config():
 async def set_ads():
     os.system('cls' if os.name == 'nt' else 'clear')
     print("= Setting ads to be ran = ")
+    if CONFIG["node_url"] == "" or CONFIG["node_api_key"] == "":
+        print("Please configure a node connection first!")
+        print("You will be returned to the menu...")
+        time.sleep(5)
     if CONFIG["address"] == '':
         print("Please configure you address first!")
         print("You will be returned to the menu...")
