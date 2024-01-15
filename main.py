@@ -4,7 +4,7 @@ import time
 import utils.menu as menu
 import os
 import subprocess
-from utils.ads import AdBurnKey, AdTarget, competing_targets
+from utils.ads import AdBurnKey, AdTarget, competing_targets, ad_sorting_key
 from utils.rpc import rpc_call, get_user_burns, check_syncing
 from utils.burn import BurnAttachment
 from utils.log import log
@@ -23,52 +23,64 @@ async def runner():
         log("Could not load burns!")
         return
 
+    # create competitors list
     competitors = []
     for burn in burns["result"]:
         competitor = None
         try:
             ad = AdBurnKey.from_hex(burn["key"])
-            competitor = (burn["amount"], AdTarget.from_hex(ad.target).__dict__, ad.cid)
+            amount = float(burn["amount"])
+            targets = AdTarget.from_hex(ad.target).__dict__
+            cid = ad.cid
+            # calculate score based on targets
+            score = amount
+            if targets["language"]:
+                score *= 22
+            if targets["os"]:
+                score *= 5
+            competitor = (amount, score, targets, cid)
         except:
             log("Burn not identified as an ad.")
         if competitor:
             competitors.append(competitor)
 
-    competitors_scores = []
-    for x in competitors:
-        score = float(x[0])
-        if x[1]["language"]:
-            score *= 22
-        if x[1]["os"]:
-            score *= 5
-        competitors_scores.append((x[0], score, x[1], x[2]))
-    competitors_scores.sort(key = lambda x: x[1], reverse = True)
-
     # iterate through ads that should be kept alive
-    for ad in CONFIG["ads"]:
+    sorted_ads = sorted(CONFIG["ads"], key = ad_sorting_key, reverse = True)
+    for index in range(len(sorted_ads)):
+        ad = CONFIG["ads"][index]
+        competitors.sort(key = lambda x: x[1], reverse = True)
         # create local top for ad
         ad_target = AdTarget.from_hex(ad["target"]).__dict__
         local_top = []
-        for c in competitors_scores:
+        for c in competitors:
             if competing_targets(ad_target, c[2]):
                 local_top.append(c)
 
         if (ad_target, ad["cid"]) in [(x[2], x[3]) for x in local_top[:3]]:
             # if ad is already in local top we do not burn any more coins
-            log("Ad already in top!")
+            log(f"Ad {index} already in top!")
             continue
-
-        ad_score = 0
-        for elem in local_top:
+        
+        # obtain the current burnt amount for the ad being refreshed
+        curr_ad_score = 0
+        curr_ad_burn = 0
+        for elem in competitors:
             if ad_target == elem[2] and ad["cid"] == elem[3]:
-                ad_score = elem[1]
+                curr_ad_score = elem[1]
+                curr_ad_burn = elem[0]
 
+        # calculate which ad to overtake
         score_to_overtake = 0
         try:
-            score_to_overtake = local_top[max(0,4-len(CONFIG["ads"]))-1][1]
+            score_to_overtake = local_top[max(0,4 - len(CONFIG["ads"]) + index) - 1][1]
+            # NOTE: the script might overtake its own ads and throw them out of their local top
+            #       but it gets corrected when the script runs again
         except IndexError:
+            # local_top might not have enough elements => burn minimal amount
             pass
-        burn_amount = (score_to_overtake - ad_score)
+
+        # calculate how much iDNA to burn
+        burn_amount = (score_to_overtake - curr_ad_score)
         if ad_target["language"] != '':
             burn_amount /= 22
         if ad_target["os"] != '':
@@ -77,15 +89,15 @@ async def runner():
         burn_amount += 0.01
         burn_amount = round(burn_amount, 5)
 
-        # send burn tx
+        # send burn tx if limits allow it
         if burn_amount > CONFIG["max_burn"]:
-            log(f"Burn of {burn_amount} exceeds limit!")
+            log(f"Burn of {burn_amount} for ad {index} exceeds limit!")
             continue
         daily_burns = await get_user_burns(CONFIG["address"], CONFIG["node_url"], CONFIG["node_api_key"]) + burn_amount
         if daily_burns > CONFIG["daily_max_burn"]:
-            log(f"Attempted to burn {burn_amount}, but your burns exceed the daily limit!")
+            log(f"Attempted to burn {burn_amount} for ad {index}, but your burns exceed the daily limit!")
             continue
-        log(f"Sending burn of {burn_amount} iDNA.")
+        log(f"Sending burn of {burn_amount} iDNA for ad {index}.")
 
         if CONFIG["lightweight"]:
             raw_burn_tx = await rpc_call({
@@ -114,6 +126,15 @@ async def runner():
             
             if "result" in send_raw_tx:
                 log("Burn sent succesfully!")
+
+                # update competitors list with the new burn
+                new_ad_burn = curr_ad_burn + burn_amount
+                new_ad_score = new_ad_burn
+                if ad_target["language"] != '':
+                    new_ad_score += new_ad_score * 22
+                if ad_target["os"] != '':
+                    curr_ad_score += curr_ad_score *5
+                competitors.append((new_ad_burn, new_ad_score, ad_target, ad["cid"]))
             else:
                 log("Something went wrong!")
 
@@ -133,6 +154,15 @@ async def runner():
 
         if "result" in send_burn_tx:
             log("Burn sent succesfully!")
+
+            # update competitors list with the new burn
+            new_ad_burn = curr_ad_burn + burn_amount
+            new_ad_score = new_ad_burn
+            if ad_target["language"] != '':
+                new_ad_score += new_ad_score * 22
+            if ad_target["os"] != '':
+                curr_ad_score += curr_ad_score *5
+            competitors.append((new_ad_burn, new_ad_score, ad_target, ad["cid"]))
         else:
             log("Something went wrong!")
         

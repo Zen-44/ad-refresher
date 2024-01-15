@@ -120,3 +120,12 @@ def competing_targets(target1, target2):
         # if no language/os is set, ad will overtake other ads that have them set
         return 1
     return 0
+
+def ad_sorting_key(ad):
+    targets = AdTarget.from_hex(ad["target"]).__dict__
+    score = 1
+    if targets["language"] != '':
+        score *= 22
+    if targets["os"] != '':
+        score *= 5
+    return score
