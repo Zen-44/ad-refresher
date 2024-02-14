@@ -1,3 +1,9 @@
+/**********************************************************************
+ * Copyright (c) 2020 RealMahmoud                                     *
+ * Distributed under the MIT software license, see the accompanying   *
+ * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
+ **********************************************************************/
+
 const keccak256 = require('js-sha3').keccak256;
 const messages = require('./models_pb');
 const secp256k1 = require('secp256k1');
