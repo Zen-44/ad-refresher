@@ -39,3 +39,16 @@ async def check_syncing(url, api_key):
         return sync_check["result"]["syncing"]
     except:
         return True
+    
+async def check_status(url, api_key):
+    check_status = await rpc_call({
+        "method": "bcn_syncing",
+        "params": [],
+        "key": api_key
+    },url)
+    try:
+        if check_status["result"]:
+            return True
+    except:
+        print("The node can not be reached or the API key is incorrect!")
+        return False

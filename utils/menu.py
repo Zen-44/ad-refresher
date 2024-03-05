@@ -1,5 +1,5 @@
-from utils.ads import AdTarget, Ad, competing_targets
-from utils.rpc import rpc_call
+from utils.ads import AdTarget, Ad
+from utils.rpc import rpc_call, check_status
 from utils.dna_profile import Profile
 from eth_account import Account
 import os
@@ -42,6 +42,10 @@ async def set_ads():
     print("= Setting ads to be ran = ")
     if CONFIG["node_url"] == "" or CONFIG["node_api_key"] == "":
         print("Please configure a node connection first!")
+        print("You will be returned to the menu...")
+        time.sleep(5)
+        return
+    if not await check_status(CONFIG["node_url"], CONFIG["node_api_key"]):
         print("You will be returned to the menu...")
         time.sleep(5)
         return
@@ -188,16 +192,8 @@ async def set_node_connection():
         url = input("Enter the node URL: ")
         api_key = input("Enter the API key: ")
         # get status
-        check_status = await rpc_call({
-            "method": "bcn_syncing",
-            "params": [],
-            "key": api_key
-        },url)
-        try:
-            if check_status["result"]:
-                break
-        except:
-            print("The node you provided can not be reached or the API key is incorrect!")
+        if await check_status(url, api_key):
+            break
     CONFIG["node_url"] = url
     CONFIG["node_api_key"] = api_key
     save_config()
