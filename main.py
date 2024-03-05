@@ -47,7 +47,7 @@ async def runner():
     # iterate through ads that should be kept alive
     sorted_ads = sorted(CONFIG["ads"], key = ad_sorting_key, reverse = True)
     for index in range(len(sorted_ads)):
-        ad = CONFIG["ads"][index]
+        ad = sorted_ads[index]
         competitors.sort(key = lambda x: x[1], reverse = True)
         # create local top for ad
         ad_target = AdTarget.from_hex(ad["target"]).__dict__
